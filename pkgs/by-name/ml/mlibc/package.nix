@@ -4,7 +4,6 @@
   stdenvNoCC,
   stdenvNoLibc,
   fetchFromGitHub,
-  fetchpatch,
   frigg,
   libsmarter,
   meson,
@@ -43,13 +42,6 @@ stdenv.mkDerivation (finalAttrs: {
     tag = "v${finalAttrs.version}";
     sha256 = "sha256-e4YjosGDI2CWkGeih0HG69yPJa+sKAReTQ87lgzBTzg=";
   };
-
-  patches = [
-    (fetchpatch {
-      url = "https://github.com/managarm/mlibc/pull/1478.patch";
-      hash = "";
-    })
-  ];
 
   depsBuildBuild = [
     buildPackages.stdenv.cc
