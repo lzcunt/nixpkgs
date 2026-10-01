@@ -144,6 +144,18 @@ optionals noSysDirs (
   ./add-netbsd-mlibc.patch
 ]
 
+## NetBSD
+
+# With --enable-default-pie the driver passes -pie to the linker via
+# LINK_PIE_SPEC, but that never sets the `pie` spec variable, so the
+# `%{pie:crtbeginS}` branches in netbsd-elf.h never matched and the
+# non-PIC crtbegin.o/crtend.o (built with -fno-PIE) were linked into PIE
+# executables. Every target library configure then died with
+# "C compiler cannot create executables". Use PIE_SPEC, which expands to
+# "!no-pie" under --enable-default-pie and to "pie" otherwise, the same
+# way gnu-user.h already does.
+++ optional targetPlatform.isNetBSD ./netbsd-default-pie-crtbegin.patch
+
 ## Darwin
 
 # Here we apply patches by Iains (https://github.com/iains)

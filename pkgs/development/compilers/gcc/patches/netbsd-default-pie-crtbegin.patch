@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: nixpkgs-netbsd <noreply@example.com>
+Date: Thu, 1 Oct 2026 00:00:00 +0000
+Subject: [PATCH] gcc: netbsd: use PIE_SPEC for crtbegin/crtend selection
+
+With --enable-default-pie the driver passes -pie to the linker via
+LINK_PIE_SPEC, but that never sets the `pie` spec variable, so
+%{pie:crtbeginS%O%s} did not match and the non-PIC crtbegin.o/crtend.o
+(built with -fno-PIE) were linked into PIE executables, breaking the
+first executable link of every target library configure (libatomic):
+
+  ld.bfd: crtbegin.o: relocation R_X86_64_32 against hidden symbol
+          TMC_END can not be used when making a PIE object
+
+Use the PIE_SPEC macro (as gnu-user.h does), which expands to "!no-pie"
+under --enable-default-pie and to "pie" otherwise.
+---
+--- a/gcc/config/netbsd-elf.h	2026-10-01 16:46:47.934810700 +0300
++++ b/gcc/config/netbsd-elf.h	2026-10-01 16:50:50.619750509 +0300
+@@ -41,9 +41,8 @@
+    %:if-exists(crti%O%s)	\
+    %{static:%:if-exists-else(crtbeginT%O%s crtbegin%O%s)} \
+    %{!static:                   \
+-     %{!shared:                 \
+-       %{!pie:crtbegin%O%s}     \
+-       %{pie:crtbeginS%O%s}}    \
++     %{!shared:                 %{"\
++ PIE_SPEC ":crtbeginS%O%s;:crtbegin%O%s}}    \
+      %{shared:crtbeginS%O%s}}"
+ 
+ #undef STARTFILE_SPEC
+@@ -55,9 +54,8 @@
+    C++ file-scope static objects deconstructed after exiting "main".  */
+ 
+ #define NETBSD_ENDFILE_SPEC	\
+-  "%{!shared:                   \
+-    %{!pie:crtend%O%s}          \
+-    %{pie:crtendS%O%s}}         \
++  "%{!shared:                   %{"\
++ PIE_SPEC ":crtendS%O%s;:crtend%O%s}}         \
+    %{shared:crtendS%O%s}        \
+    %:if-exists(crtn%O%s)"
+ 
