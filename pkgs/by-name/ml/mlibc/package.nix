@@ -23,14 +23,6 @@ let
     }
     .${stdenv.hostPlatform.parsed.kernel.name}
       or (throw "Unsupported kernel ${stdenv.hostPlatform.parsed.kernel.name}");
-
-  defaultLibrary =
-    {
-      linux = "both";
-      netbsd = "static";
-    }
-    .${stdenv.hostPlatform.parsed.kernel.name}
-      or (throw "Unsupported kernel ${stdenv.hostPlatform.parsed.kernel.name}");
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "mlibc${lib.optionalString headersOnly "-headers"}";
@@ -69,7 +61,7 @@ stdenv.mkDerivation (finalAttrs: {
   mesonBuildType = "release";
   mesonAutoFeatures = "auto";
   mesonFlags = [
-    "-Ddefault_library=${defaultLibrary}"
+    "-Ddefault_library=both"
     "-Dbuild_tests=false"
     "-Duse_freestnd_hdrs=disabled"
   ]
